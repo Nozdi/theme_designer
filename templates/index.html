@@ -1,39 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Hello Endpoints!</title>
+    <title>Theme designer</title>
     <script async src="/js/base.js"></script>
     <link rel="stylesheet" href="/bootstrap/css/bootstrap.css">
     <link rel="stylesheet" href="/bootstrap/css/bootstrap-responsive.css">
-    <style>
-        body {
-            padding-top: 40px;
-            padding-bottom: 40px;
-            background-color: #f5f5f5;
-        }
-        blockquote {
-            margin-bottom: 10px;
-            border-left-color: #bbb;
-        }
-        form {
-            margin-top: 10px;
-        }
-        form label {
-          width: 90px;
-          display: inline-block;
-        }
-        .form-signin input[type="text"] {
-            font-size: 16px;
-            height: auto;
-            margin-bottom: 15px;
-            padding: 7px 9px;
-        }
-        .row {
-            margin-left: 0px;
-            margin-top: 10px;
-            overflow: scroll;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <div class="navbar navbar-inverse navbar-fixed-top">
@@ -44,7 +16,7 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="brand" href="#">Hello Endpoints!</a>
+            <a class="brand" href="#">Theme designer</a>
             <div class="nav-collapse collapse pull-right">
                 <a href="javascript:void(0);" class="btn" id="signinButton">Sign in</a>
             </div>
@@ -53,34 +25,32 @@
 </div>
 <div class="container">
 
-    <output id="outputLog"></output>
+        <table id="musicTable" class="table table-striped" style="visibility:hidden;">
+            <thead>
+                <th>Name</th>
+                <th>Music</th>
+                <th>Player</th>
+            </thead>
+            <tbody id="outputLog">
+
+            </tbody>
+        </table>
 
     <form onsubmit="return false">
-        <h2>Get Greeting</h2>
-        <div><label for="id">Greeting ID:</label><input id="id" /></div>
-        <div><input id="getGreeting" type="submit" class="btn btn-small" value="Submit"></div>
+        <h2>Create melodies here!</h2>
+        <div><label for="name">Name:</label><input id="name" /></div>
+        <div><label for="music_string">Melody:</label><input id="music_string" /></div>
+        <div><input id="createMusic" type="submit" class="btn btn-small" value="Submit"></div>
     </form>
 
-    <form onsubmit="return false">
-        <h2>List Greetings</h2>
-        <div><input id="listGreeting" type="submit" class="btn btn-small" value="Submit"></div>
-    </form>
-
-    <form onsubmit="return false">
-        <h2>Multiply Greetings</h2>
-        <div><label for="greeting">Greeting:</label><input id="greeting" /></div>
-        <div><label for="count">Count:</label><input id="count" /></div>
-        <div><input id="multiplyGreetings" type="submit" class="btn btn-small" value="Submit"></div>
-    </form>
-
-    <form onsubmit="return false">
-        <h2>Authenticated Greeting</h2>
-        <div><input id="authedGreeting" type="submit" class="btn btn-small" value="Submit"></div>
+    <form onsubmit="return false" style="visibility:hidden;" id="getAll">
+        <h2>Get all melodies!</h2>
+        <div><input id="listMelodies" type="submit" class="btn btn-small" value="Submit"></div>
     </form>
 
     <script>
         function init() {
-            google.appengine.samples.hello.init('//' + window.location.host + '/_ah/api');
+            google.appengine.samples.theme.init('//' + window.location.host + '/_ah/api');
         }
     </script>
     <script src="https://apis.google.com/js/client.js?onload=init"></script>
