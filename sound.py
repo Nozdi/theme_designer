@@ -4,8 +4,9 @@
 """
 
 from math import pi
+from io import BytesIO
+from numpy import linspace, int16, sin, concatenate
 import wave
-from numpy import linspace, int16, sin, concatenate, arcsin
 
 
 SAMPLE_RATE = 44100
@@ -36,7 +37,7 @@ def note(freq, duration=0, amp=10000):
     """
     if not duration:
         period = 1/freq
-        while duration < 1.5:
+        while duration < 2:
             duration += period
 
     t = linspace(0, duration, duration * SAMPLE_RATE)
@@ -59,6 +60,7 @@ def write_wave(filename, sample_array):
 def create_sound(wave_string):
     """
     :param wave_string: string with sounds separated with space
+    :returns: numpy.array -- concatenated wave
     """
     sounds = []
     for strnote in wave_string.strip().split():
@@ -69,9 +71,32 @@ def create_sound(wave_string):
             pause = int(strnote)
             sounds.append(note(0, pause/500.))
 
-    wave = concatenate(sounds)
-    write_wave("tone.wav", wave)
+    return concatenate(sounds)
+
+
+def create_wav(filename, wave_string):
+    """
+    :param filename: name of file where the wav will be saved
+    :wave_string: string with sounds separated with space
+    """
+    wave = create_sound(wave_string)
+    write_wave(filename, wave)
+
+
+def get_sound_in_bytes(wave_string):
+    """
+    :param wave_string: string with sounds separated with space
+    :returns: BytesIO -- file buffer with sound
+    """
+    wave = create_sound(wave_string)
+    sound_bytes = BytesIO()
+    write_wave(sound_bytes, wave)
+    sound_bytes.seek(0)
+    return sound_bytes
 
 
 if __name__ == '__main__':
-    create_sound("C C# D D# E F F# G G# A A# B C1")
+    # create_wav("tone.wav", "C C# D D# E F F# G G# A A# B C1")
+    sound_bytes = get_sound_in_bytes("C C# D D# E F F# G G# A A# B C1")
+    with open("tone.wav", "wb") as f:
+        f.write(sound_bytes.read())

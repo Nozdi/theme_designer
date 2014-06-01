@@ -182,8 +182,8 @@ google.appengine.samples.hello.init = function(apiRoot) {
   var callback = function() {
     if (--apisToLoad == 0) {
       google.appengine.samples.hello.enableButtons();
-      google.appengine.samples.hello.signin(true,
-          google.appengine.samples.hello.userAuthed);
+      // google.appengine.samples.hello.signin(true,
+      //     google.appengine.samples.hello.userAuthed);
     }
   }
 
