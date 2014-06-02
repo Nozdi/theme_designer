@@ -48,7 +48,7 @@ class ThemeDesignerApi(remote.Service):
             raise endpoints.BadRequestException(
                 "Use " + " ".join(OCTAVE.keys()) + " or digits"
             )
-        filename = "{}/{}.wave".format(nick, str(time.time()).replace('.', '_'))
+        filename = "{}/{}.wav".format(nick, str(time.time()).replace('.', '_'))
         url = create_file(filename, wave.read())
         return url
 
