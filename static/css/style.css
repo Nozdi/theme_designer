@@ -9,6 +9,8 @@ blockquote {
 }
 form {
     margin-top: 10px;
+    float: left;
+    width: 450px;
 }
 form label {
   width: 90px;
@@ -19,4 +21,8 @@ form label {
     height: auto;
     margin-bottom: 15px;
     padding: 7px 9px;
+}
+
+.container {
+    width: 1400px;
 }

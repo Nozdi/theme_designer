@@ -1,8 +1,13 @@
+"""
+.. module:: gcs
+    :synopsis: Module for connecting with google cloud storage
+"""
+
 import cloudstorage as gcs
 import os
 from google.appengine.api import app_identity
 
-DEBUG = True
+DEBUG = False
 
 my_default_retry_params = gcs.RetryParams(initial_delay=0.2,
                                           max_delay=5.0,
@@ -16,6 +21,7 @@ BUCKET_NAME = os.environ.get('BUCKET_NAME',
 
 if not BUCKET_NAME:
     BUCKET_NAME = 'app_default_bucket'
+    # BUCKET_NAME = 'theme-designer'
 
 
 def create_file(filename, data):
@@ -28,12 +34,16 @@ def create_file(filename, data):
     gcs_file = gcs.open(path,
                         'w',
                         content_type='application/octet-stream',
-                        # options={'x-goog-project-id': 405390963802},
-                        # options={'x-goog-meta-foo': 'foo',
-                        #          'x-goog-meta-bar': 'bar'},
                         retry_params=write_retry_params)
     gcs_file.write(data)
     gcs_file.close()
     if DEBUG:
         return "http://localhost:8080/_ah/gcs" + path
-    return "theme-designer.storage.googleapis.com{}".format(path)
+    return "https://theme-designer.storage.googleapis.com{}".format(path)
+
+
+def delete_file(link):
+    try:
+        gcs.delete("/{}/{}".format(BUCKET_NAME, "/".join(link.split("/")[-2:])))
+    except gcs.NotFoundError:
+        pass

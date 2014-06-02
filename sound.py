@@ -96,7 +96,7 @@ def get_sound_in_bytes(music_string):
 
 
 if __name__ == '__main__':
-    create_wav("tone.wav", "C F# 500 C F# C F# D# D C1")
+    create_wav("tone.wav", "G C G C G C G C D D D D G C")
     # sound_bytes = get_sound_in_bytes("C C# D D# E F F# 1000 G G# A A# B C1")
     # with open("tone.wav", "wb") as f:
     #     f.write(sound_bytes.read())

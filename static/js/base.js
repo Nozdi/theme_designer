@@ -64,15 +64,23 @@ google.appengine.samples.theme.signin = function(mode, callback) {
  * Presents the user with the authorization popup.
  */
 google.appengine.samples.theme.auth = function() {
+  var elems = ['f_getAll', 'f_editMusic', 'f_deleteMusic']
   if (!google.appengine.samples.theme.signedIn) {
     google.appengine.samples.theme.signin(false,
         google.appengine.samples.theme.userAuthed);
-    document.getElementById('getAll').style.visibility = "visible";
+
+
+    for (var i = elems.length - 1; i >= 0; i--) {
+      document.getElementById(elems[i]).style.visibility = "visible";
+    };
+
   } else {
     google.appengine.samples.theme.signedIn = false;
     document.querySelector('#signinButton').textContent = 'Sign in';
     clear_table();
-    document.getElementById('getAll').style.visibility = "hidden";
+    for (var i = elems.length - 1; i >= 0; i--) {
+      document.getElementById(elems[i]).style.visibility = "hidden";
+    };
     document.getElementById('musicTable').style.visibility = "hidden";
   }
 };
@@ -97,12 +105,16 @@ clear_table = function(){
 google.appengine.samples.theme.print = function(melody) {
   document.getElementById('musicTable').style.visibility = "visible";
   var tr_el = document.createElement('tr');
+  create_and_add('td', melody.m_id, tr_el);
   create_and_add('td', melody.name, tr_el);
   create_and_add('td', melody.music_string, tr_el);
 
   var audio = '<a href="'+ melody.path +'">Download</a>'
   create_and_add('td', audio, tr_el);
 
+  var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(melody.result));
+  var download_json = '<a href="data:' + data + '" download="' + melody.name +'.json">Download JSON</a>'
+  create_and_add('td', download_json, tr_el);
   document.querySelector('#outputLog').appendChild(tr_el);
 };
 
@@ -131,6 +143,9 @@ google.appengine.samples.theme.listMelodies = function() {
           for (var i = 0; i < resp.items.length; i++) {
             google.appengine.samples.theme.print(resp.items[i]);
           }
+        if(resp.items.length == 0){
+            document.getElementById('musicTable').style.visibility = "hidden";
+          }
         }
       });
 };
@@ -145,20 +160,91 @@ google.appengine.samples.theme.createMusic = function(name, music_string) {
       'music_string': music_string
     }).execute(
       function(resp) {
-        google.appengine.samples.theme.print(resp);
+        document.getElementById("errors").innerHTML="";
+        if(!resp.error){
+          google.appengine.samples.theme.print(resp);
+        }
+        else{
+          document.getElementById("errors").innerHTML=resp.error.message;
+        }
+      });
+};
+
+google.appengine.samples.theme.editMusic = function(id, name, music_string){
+  gapi.client.theme.editMusic({
+    'm_id': id,
+    'name': name,
+    'music_string': music_string
+  }).execute(
+    function(resp) {
+        document.getElementById("errors_edit").innerHTML="";
+        if(!resp.error){
+            google.appengine.samples.theme.listMelodies();
+        }
+        else{
+          document.getElementById("errors_edit").innerHTML=resp.error.message;
+        }
+      });
+};
+
+google.appengine.samples.theme.deleteMusic = function(id){
+  gapi.client.theme.deleteMusic({
+    'm_id': id,
+  }).execute(
+    function(resp) {
+        document.getElementById("errors_delete").innerHTML="";
+        if(!resp.error){
+            google.appengine.samples.theme.listMelodies();
+        }
+        else{
+          document.getElementById("errors_delete").innerHTML=resp.error.message;
+        }
       });
 };
 
 
+google.appengine.samples.theme.loadMusic = function(){
+  input = document.getElementById('fileinput');
+    if (!input.files[0]) {
+      alert("Please select a file before clicking 'Load'");
+    }
+    else{
+      file = input.files[0];
+      fr = new FileReader();
+      fr.onloadend = function (e) {
+        showUploadedItem(e.target.result);
+      };
+      // fr.readAsBinaryString(file);
+      fr.readAsDataURL(file);
+    }
+     function showUploadedItem(source) {
+       //result = fr.result;
+       document.getElementById('errors_json').appendChild(document.createTextNode(source))
+    }
+    // gapi.client.theme.createMusic({
+    //   'json_file': json_file,
+    // }).execute(
+    //   function(resp) {
+    //     document.getElementById("errors_json").innerHTML="";
+    //     if(!resp.error){
+    //       google.appengine.samples.theme.print(resp);
+    //     }
+    //     else{
+    //       document.getElementById("errors_json").innerHTML=resp.error.message;
+    //     }
+    //   });
+};
 /**
  * Enables the button callbacks in the UI.
  */
 google.appengine.samples.theme.enableButtons = function() {
-  // var getMelody = document.querySelector('#getMelody');
-  // getMelody.addEventListener('click', function(e) {
-  //   google.appengine.samples.theme.getMelody(
-  //       document.querySelector('#id').value);
-  // });
+  var editMusic = document.querySelector('#editMusic');
+    editMusic.addEventListener('click', function(e) {
+      google.appengine.samples.theme.editMusic(
+          document.querySelector('#edit_id').value,
+          document.querySelector('#edit_name').value,
+          document.querySelector('#edit_music_string').value);
+  });
 
   var listMelodies = document.querySelector('#listMelodies');
   listMelodies.addEventListener('click',
@@ -169,6 +255,12 @@ google.appengine.samples.theme.enableButtons = function() {
     google.appengine.samples.theme.createMusic(
         document.querySelector('#name').value,
         document.querySelector('#music_string').value);
+  });
+
+  var deleteMusic = document.querySelector('#deleteMusic');
+  deleteMusic.addEventListener('click', function(e) {
+    google.appengine.samples.theme.deleteMusic(
+        document.querySelector('#delete_id').value);
   });
 
   var signinButton = document.querySelector('#signinButton');

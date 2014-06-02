@@ -5,21 +5,30 @@
 
 import time
 import endpoints
-from protorpc import messages
-from protorpc import message_types
-from protorpc import remote
+from protorpc import (
+    message_types,
+    remote,
+)
 
 from api.messages import (
     InputMelody,
+    EditMelody,
+    DeleteMelody,
     OutputMelody,
     OutputMelodyCollection,
 )
-from api.gsc import create_file
+from api.gsc import (
+    create_file,
+    delete_file,
+)
 from api.models import (
     Track,
     user_key,
 )
-from sound import get_sound_in_bytes
+from sound import (
+    get_sound_in_bytes,
+    OCTAVE,
+)
 
 WEB_CLIENT_ID = '405390963802-1gkqm09rnc9fhjl6atra67gmnvo6crdi.apps.googleusercontent.com'
 
@@ -32,18 +41,29 @@ package = 'Theme'
 class ThemeDesignerApi(remote.Service):
     """Theme Designer API v1."""
 
+    def create_wave(self, music_string, nick):
+        try:
+            wave = get_sound_in_bytes(music_string)
+        except ValueError:
+            raise endpoints.BadRequestException(
+                "Use " + " ".join(OCTAVE.keys()) + " or digits"
+            )
+        filename = "{}/{}.wave".format(nick, str(time.time()).replace('.', '_'))
+        url = create_file(filename, wave.read())
+        return url
+
     @endpoints.method(InputMelody, OutputMelody,
                       path='theme/create', http_method='POST',
                       name='createMusic')
     def create_music(self, request):
         current_user = endpoints.get_current_user()
         nick = (current_user.nickname() if current_user is not None
-                 else 'anonymous')
+                else 'anonymous')
 
-        wave = get_sound_in_bytes(request.music_string)
+        if not request.name:
+            raise endpoints.BadRequestException("Insert a name")
 
-        filename = "{}/{}.wave".format(nick, str(time.time()).replace('.', '_'))
-        url = create_file(filename, wave.read())
+        url = self.create_wave(request.music_string, nick)
         m_id = 0
 
         if current_user:
@@ -52,8 +72,8 @@ class ThemeDesignerApi(remote.Service):
             new_track.name = request.name
             new_track.music_string = request.music_string.upper()
             new_track.music_filename = url
-            new_track.put()
-            m_id = new_track.key().id()
+            key = new_track.put()
+            m_id = key.id()
 
         return OutputMelody(
             m_id=m_id,
@@ -67,9 +87,6 @@ class ThemeDesignerApi(remote.Service):
                       name='listMelodies')
     def get_all_music(self, request):
         current_user = endpoints.get_current_user()
-        nick = (current_user.nickname() if current_user is not None
-                 else 'anonymous')
-
         tracks = Track.all().filter("author =", current_user)
 
         items = []
@@ -83,40 +100,54 @@ class ThemeDesignerApi(remote.Service):
 
         return OutputMelodyCollection(items=items)
 
-    #     return Greeting(message='hello %s' % (email,))
+    @endpoints.method(EditMelody, OutputMelody,
+                      path='theme/edit', http_method='POST',
+                      name='editMusic')
+    def edit_by_key(self, request):
+        current_user = endpoints.get_current_user()
+        nick = (current_user.nickname() if current_user is not None
+                else 'anonymous')
 
-    # MULTIPLY_METHOD_RESOURCE = endpoints.ResourceContainer(
-    #         Greeting,
-    #         times=messages.IntegerField(2, variant=messages.Variant.INT32,
-    #                                     required=True))
+        url = self.create_wave(request.music_string, nick)
 
-    # @endpoints.method(MULTIPLY_METHOD_RESOURCE, Greeting,
-    #                   path='hellogreeting/{times}', http_method='POST',
-    #                   name='greetings.multiply')
-    # def greetings_multiply(self, request):
-    #     return Greeting(message=request.message * request.times)
+        if current_user:
+            t = Track.get_by_id(
+                request.m_id,
+                parent=user_key(current_user.nickname())
+            )
 
-    # @endpoints.method(message_types.VoidMessage, GreetingCollection,
-    #                   path='hellogreeting', http_method='GET',
-    #                   name='greetings.listGreeting')
-    # def greetings_list(self, unused_request):
-    #     return STORED_GREETINGS
+            if not t:
+                raise endpoints.NotFoundException(
+                    "Not found id: {}".format(request.m_id)
+                )
 
+            delete_file(t.music_filename)
 
-    # ID_RESOURCE = endpoints.ResourceContainer(
-    #         message_types.VoidMessage,
-    #         id=messages.IntegerField(1, variant=messages.Variant.INT32))
-    # @endpoints.method(ID_RESOURCE, Greeting,
-    #                   path='hellogreeting/{id}', http_method='GET',
-    #                   name='greetings.getGreeting')
-    # def greeting_get(self, request):
-    #     try:
-    #         return STORED_GREETINGS.items[request.id]
-    #     except (IndexError, TypeError):
-    #         raise endpoints.NotFoundException('Greeting %s not found.' %
-    #                                           (request.id,))
+            t.name = request.name
+            t.music_string = request.music_string
+            t.music_filename = url
+            t.put()
 
+        return OutputMelody(
+            m_id=request.m_id,
+            name=request.name,
+            music_string=request.music_string,
+            path=url,
+        )
 
+    @endpoints.method(DeleteMelody, message_types.VoidMessage,
+                      path='theme/delete', http_method='POST',
+                      name='deleteMusic')
+    def remove_by_key(self, request):
+        current_user = endpoints.get_current_user()
+        if current_user:
+            t = Track.get_by_id(
+                request.m_id,
+                parent=user_key(current_user.nickname())
+            )
+            delete_file(t.music_filename)
+            t.delete()
+        return message_types.VoidMessage()
 
 
 APPLICATION = endpoints.api_server([ThemeDesignerApi])
