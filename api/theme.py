@@ -52,6 +52,10 @@ class ThemeDesignerApi(remote.Service):
         url = create_file(filename, wave.read())
         return url
 
+    def validate_existance(self, obj, msg):
+        if not obj:
+            raise endpoints.NotFoundException(msg)
+
     @endpoints.method(InputMelody, OutputMelody,
                       path='theme/create', http_method='POST',
                       name='createMusic')
@@ -60,8 +64,7 @@ class ThemeDesignerApi(remote.Service):
         nick = (current_user.nickname() if current_user is not None
                 else 'anonymous')
 
-        if not request.name:
-            raise endpoints.BadRequestException("Insert a name")
+        self.validate_existance(request.name, "Insert a name")
 
         url = self.create_wave(request.music_string, nick)
         m_id = 0
@@ -116,10 +119,7 @@ class ThemeDesignerApi(remote.Service):
                 parent=user_key(current_user.nickname())
             )
 
-            if not t:
-                raise endpoints.NotFoundException(
-                    "Not found id: {}".format(request.m_id)
-                )
+            self.validate_existance(t, "Not found id: {}".format(request.m_id))
 
             delete_file(t.music_filename)
 
@@ -145,6 +145,9 @@ class ThemeDesignerApi(remote.Service):
                 request.m_id,
                 parent=user_key(current_user.nickname())
             )
+
+            self.validate_existance(t, "Not found id: {}".format(request.m_id))
+
             delete_file(t.music_filename)
             t.delete()
         return message_types.VoidMessage()

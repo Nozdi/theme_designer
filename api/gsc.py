@@ -19,10 +19,6 @@ gcs.set_default_retry_params(my_default_retry_params)
 BUCKET_NAME = os.environ.get('BUCKET_NAME',
                              app_identity.get_default_gcs_bucket_name())
 
-if not BUCKET_NAME:
-    BUCKET_NAME = 'app_default_bucket'
-    # BUCKET_NAME = 'theme-designer'
-
 
 def create_file(filename, data):
     """
@@ -33,13 +29,14 @@ def create_file(filename, data):
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
     gcs_file = gcs.open(path,
                         'w',
+                        options={'x-goog-acl':'public-read'},
                         content_type='application/octet-stream',
                         retry_params=write_retry_params)
     gcs_file.write(data)
     gcs_file.close()
     if DEBUG:
         return "http://localhost:8080/_ah/gcs" + path
-    return "https://theme-designer.storage.googleapis.com{}".format(path)
+    return "https://storage.googleapis.com" + path
 
 
 def delete_file(link):

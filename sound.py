@@ -38,7 +38,7 @@ def note(freq, duration=0, amp=10000):
     if not duration:
         period = 1/freq
         while duration < 1.2:
-            duration += period
+            duration += 2*period
 
     t = linspace(0, duration, duration * SAMPLE_RATE)
     data = sin(2 * pi * freq * t) * amp
@@ -96,7 +96,8 @@ def get_sound_in_bytes(music_string):
 
 
 if __name__ == '__main__':
-    create_wav("tone.wav", "G C G C G C G C D D D D G C")
+    # create_wav("tone.wav", "G C G C G C G C D D D D G C")
+    create_wav("tone.wav", "A C D C A A A A C D F G#")
     # sound_bytes = get_sound_in_bytes("C C# D D# E F F# 1000 G G# A A# B C1")
     # with open("tone.wav", "wb") as f:
     #     f.write(sound_bytes.read())

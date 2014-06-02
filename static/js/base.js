@@ -85,7 +85,9 @@ google.appengine.samples.theme.auth = function() {
   }
 };
 
-
+/*
+ *Function helping with printing into table
+ */
 create_and_add = function(type, elem, where){
   var element = document.createElement(type);
   element.innerHTML = elem;
@@ -152,7 +154,7 @@ google.appengine.samples.theme.listMelodies = function() {
 
 
 /**
- * Greets the current user via the API.
+ * Creates music via the API.
  */
 google.appengine.samples.theme.createMusic = function(name, music_string) {
   gapi.client.theme.createMusic({
@@ -170,6 +172,9 @@ google.appengine.samples.theme.createMusic = function(name, music_string) {
       });
 };
 
+/**
+ * Edit music via the API.
+ */
 google.appengine.samples.theme.editMusic = function(id, name, music_string){
   gapi.client.theme.editMusic({
     'm_id': id,
@@ -187,6 +192,9 @@ google.appengine.samples.theme.editMusic = function(id, name, music_string){
       });
 };
 
+/**
+ *Delete music via the API.
+ */
 google.appengine.samples.theme.deleteMusic = function(id){
   gapi.client.theme.deleteMusic({
     'm_id': id,
@@ -202,38 +210,6 @@ google.appengine.samples.theme.deleteMusic = function(id){
       });
 };
 
-
-google.appengine.samples.theme.loadMusic = function(){
-  input = document.getElementById('fileinput');
-    if (!input.files[0]) {
-      alert("Please select a file before clicking 'Load'");
-    }
-    else{
-      file = input.files[0];
-      fr = new FileReader();
-      fr.onloadend = function (e) {
-        showUploadedItem(e.target.result);
-      };
-      // fr.readAsBinaryString(file);
-      fr.readAsDataURL(file);
-    }
-     function showUploadedItem(source) {
-       //result = fr.result;
-       document.getElementById('errors_json').appendChild(document.createTextNode(source))
-    }
-    // gapi.client.theme.createMusic({
-    //   'json_file': json_file,
-    // }).execute(
-    //   function(resp) {
-    //     document.getElementById("errors_json").innerHTML="";
-    //     if(!resp.error){
-    //       google.appengine.samples.theme.print(resp);
-    //     }
-    //     else{
-    //       document.getElementById("errors_json").innerHTML=resp.error.message;
-    //     }
-    //   });
-};
 /**
  * Enables the button callbacks in the UI.
  */
