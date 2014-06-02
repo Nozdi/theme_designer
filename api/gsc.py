@@ -7,7 +7,7 @@ import cloudstorage as gcs
 import os
 from google.appengine.api import app_identity
 
-DEBUG = False
+DEBUG = True
 
 my_default_retry_params = gcs.RetryParams(initial_delay=0.2,
                                           max_delay=5.0,
