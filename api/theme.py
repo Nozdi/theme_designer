@@ -119,6 +119,7 @@ class ThemeDesignerApi(remote.Service):
                 parent=user_key(current_user.nickname())
             )
 
+            self.validate_existance(request.name, "Insert a name")
             self.validate_existance(t, "Not found id: {}".format(request.m_id))
 
             delete_file(t.music_filename)
